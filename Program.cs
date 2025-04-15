@@ -5,23 +5,29 @@ using WebApi.Services.Livro;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Forçar uso da porta do ambiente (ex: Railway usa a 3000)
+var port = Environment.GetEnvironmentVariable("PORT") ?? "3000";
+builder.WebHost.UseUrls($"http://*:{port}");
 
+// Add services to the container.
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 builder.Services.AddDbContext<AppDbContext>(options => {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
+
 builder.Services.AddScoped<IAutorInterface, AutorServices>();
 builder.Services.AddScoped<ILivroInterface, LivroServices>();
 
 var app = builder.Build();
 
+// Adiciona rota de teste simples no "/"
+app.MapGet("/", () => "?? API Web rodando com sucesso!");
+
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
+if (app.Environment.IsDevelopment() || app.Environment.IsProduction()) {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
